@@ -1,0 +1,31 @@
+# Example Caddy site config for serving the built `dist/` directory.
+# Replace `your-domain.example` and `/srv/imposter` with your own values.
+
+your-domain.example {
+    encode zstd gzip
+
+    log {
+        output file /srv/imposter/logs/access.log
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        -Server
+    }
+
+    root * /srv/imposter/public
+
+    # Vite hashed assets — safe to cache forever
+    @assets path /assets/*
+    header @assets Cache-Control "public, max-age=31536000, immutable"
+
+    # Everything else (index.html, sw.js, manifest.webmanifest, icons) — 1 day
+    @rest not path /assets/*
+    header @rest Cache-Control "public, max-age=86400"
+
+    file_server
+}
